@@ -24,5 +24,5 @@ Use the download raw image as image, deformed image as ground truth label.
 ![image3](https://github.com/limingwu8/Image-Registration/blob/master/images/deformed_img.png)
 
 
-### Example of predicted images
+## Example of predicted images
 ![image1](https://github.com/limingwu8/UNet-pytorch/blob/master/images/prediction_results.png)
