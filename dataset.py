@@ -185,9 +185,13 @@ if __name__ == '__main__':
         for i in range(0, Option.batch_size):
             image = sample_batched['image'][i].numpy()
             label = sample_batched['label'][i].numpy()
+            fig = plt.figure()
             plt.subplot(1, 2, 1)
+            plt.title('Deformed image')
             plt.imshow(np.squeeze(image))
             plt.subplot(1, 2, 2)
+            plt.title('Ground truth label')
             plt.imshow(np.squeeze(label))
-        plt.show()
-        break
+            fig.savefig('./images/deformed_'+ str(i_batch) + '_' + str(i), bbox_inches='tight', dpi=150)
+        # plt.show()
+        # break
