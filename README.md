@@ -19,9 +19,9 @@ This is the preview of the dataset
 	<img src="https://github.com/limingwu8/Image-Registration/blob/master/images/dataset.png">
 </p>
 
-Deformation: I use this deformed algorithm on each images with different deformed parameters. Instead the following parameter -5 to 5, randomly generate number from -10 to 10 as parameters.
+Deformation: for each training image, a gaussian mixture overlapped by 3 randomly generated gaussian is applied to the image to perform a deformation. Random gaussian noise is also applied to each image.
 <p align="center">
-	<img src="https://github.com/limingwu8/Image-Registration/blob/master/images/deformation_function.png">
+	<img src="https://github.com/limingwu8/Image-Registration/blob/master/images/deformation_algorithm.png">
 </p>
 
 Use the download raw image as image, deformed image as ground truth label.
