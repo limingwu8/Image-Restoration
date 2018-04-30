@@ -56,7 +56,7 @@ class Option(Config):
     name = "Shapes"
 
     # root dir of deformed dataset
-    root_dir = '/home/liming/Documents/dataset/emoji'
+    root_dir = '/home/liming/Documents/dataset/dtidata'
 
     img_width = 128
     img_height = 128
@@ -117,6 +117,7 @@ class Emoji(object):
         self.src_dir = src_dir
         self.dest_dir = dest_dir
         self.img_size = 225
+        self.save_img = 1
 
     def deforme_train(self):
         # generate preprocessed image for training
@@ -128,7 +129,7 @@ class Emoji(object):
                 print('processing ',name)
                 # for each emoji, generate 10 deformed images
                 try:
-                    for j in range(10):
+                    for j in range(50):
                         path = os.path.join(self.dest_dir, str(i))
                         if not os.path.exists(path):
                             os.makedirs(path)
@@ -140,12 +141,14 @@ class Emoji(object):
                         # save deformed image
                         image = deforme(np.array(label))
                         image = self.noisy(image)
+                        plt.imshow(image)
                         image = Image.fromarray(image)
-                        if image.mode != 'RGB':
-                            image = image.convert('RGB')
-                        image.save(os.path.join(path, 'image.png'))
-                        # save label
-                        label.save(os.path.join(path, 'label.png'))
+                        if image.mode != 'L':
+                            image = image.convert('L')
+                        if self.save_img:
+                            image.save(os.path.join(path, 'image.png'))
+                            # save label
+                            label.save(os.path.join(path, 'label.png'))
                         i += 1
                 except:
                     print('Something wrong!')
@@ -176,9 +179,10 @@ class Emoji(object):
                         image = Image.fromarray(image)
                         if image.mode != 'RGB':
                             image = image.convert('RGB')
-                        image.save(os.path.join(path, 'image.png'))
-                        # save label
-                        label.save(os.path.join(path, 'label.png'))
+                        if self.save_img:
+                            image.save(os.path.join(path, 'image.png'))
+                            # save label
+                            label.save(os.path.join(path, 'label.png'))
                         i += 1
                 except:
                     print('Something wrong!')
@@ -193,7 +197,8 @@ class Emoji(object):
         gauss = 10*np.random.normal(mean, sigma, (row, col))
         gauss = gauss.reshape(row, col)
         gauss = np.abs(gauss)
-        noisy = np.clip(image + gauss, 0, 255)
+        # noisy = np.clip(image + gauss, 0, 255)
+        noisy = image + gauss
         return noisy
 
 if __name__ == '__main__':
@@ -209,8 +214,8 @@ if __name__ == '__main__':
     """ Prepare deformed dataset for training
     Read emoji images from src_dir, deforming them and save them to dest_dir
     """
-    src_dir = '/home/liming/Documents/dataset/emoji/img-apple-160'
-    dest_dir = '/home/liming/Documents/dataset/emoji/train'
+    src_dir = '/home/liming/Documents/dataset/dtidata/raw_train'
+    dest_dir = '/home/liming/Documents/dataset/dtidata/train'
 
     emoji = Emoji(src_dir, dest_dir)
     emoji.deforme_train()
@@ -218,8 +223,8 @@ if __name__ == '__main__':
     """ Prepare deformed dataset for validation
     Read emoji images from src_dir, deforming them and save them to dest_dir
     """
-    src_dir = '/home/liming/Documents/dataset/emoji/img-apple-160'
-    dest_dir = '/home/liming/Documents/dataset/emoji/val'
-
-    emoji = Emoji(src_dir, dest_dir)
-    emoji.deforme_val()
+    # src_dir = '/home/liming/Documents/dataset/dtidata/raw_val'
+    # dest_dir = '/home/liming/Documents/dataset/dtidata/val'
+    #
+    # emoji = Emoji(src_dir, dest_dir)
+    # emoji.deforme_val()

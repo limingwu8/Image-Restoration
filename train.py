@@ -64,7 +64,8 @@ def run(model, train_loader, val_loader, criterion):
 # make prediction
 def run_test(model, test_loader):
     """
-    predict the masks on testing set
+    predict the masks on testing se
+    t
     :param model: trained model
     :param test_loader: testing set
     :param opt: configurations
@@ -74,19 +75,23 @@ def run_test(model, test_loader):
     """
     images = []
     predictions = []
+    ground_truth = []
     for batch_idx, sample_batched in enumerate(test_loader):
         image = sample_batched['image']
+        label = sample_batched['label']
         image = Variable(image.type(Option.dtype))
         output = model.forward(image)
         output = output.data.cpu().numpy()
         output = output.transpose((0, 2, 3, 1))    # transpose to (B,H,W,C)
+        label = label.data.cpu().numpy()
+        label = label.transpose((0, 2, 3, 1))
         for i in range(0, output.shape[0]):
             pred_mask = np.squeeze(output[i])
             images.append(np.squeeze(image.data.cpu().numpy().transpose((0, 2, 3, 1))[i]))
             predictions.append(pred_mask)
-        break
+            ground_truth.append(np.squeeze(label[i]))
 
-    return images,predictions
+    return images, predictions, ground_truth
 
 if __name__ == '__main__':
     """Train Unet model"""
@@ -117,10 +122,10 @@ if __name__ == '__main__':
                                                           num_workers=Option.num_workers,
                                                           pin_memory=Option.pin_memory)
         # load the model and run test
-        model.load_state_dict(torch.load(os.path.join(Option.checkpoint_dir, 'model-emoji04.pt')))
+        model.load_state_dict(torch.load(os.path.join(Option.checkpoint_dir, 'model-MRI.pt')))
         if Option.n_gpu > 1:
             model = nn.DataParallel(model)
         if Option.is_cuda:
             model = model.cuda()
-        images, predictions = run_test(model, val_loader)
-        show_pred(images, predictions)
+        images, predictions, ground_truth = run_test(model, val_loader)
+        show_pred(images, predictions, ground_truth)

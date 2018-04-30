@@ -7,20 +7,96 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from PIL import Image
+from skimage.io import imread
+from skimage.color import rgb2gray
+import random
 
+save_info = 1
 
 def get_shift_value(num):
-    # generate random parameters
-    a,b,c,d = np.random.uniform(-10, 10, 4)
-    x = np.linspace(a, b, num)
-    y = np.linspace(c, d, num)
-    x, y = np.meshgrid(x,y)
-    z = np.multiply(y, np.sin(x)) - np.multiply(x,np.cos(y))
-    # plot_surface(x,y,z)
-    z = z*2
+    deform_fun = bool(random.getrandbits(1))
+    deform_fun = 6
+    if deform_fun == 0:
+        # generate random parameters
+        a,b,c,d = np.random.uniform(-10, 10, 4)
+        a,b,c,d = -5, 5, -5, 5
+        x = np.linspace(a, b, num)
+        y = np.linspace(c, d, num)
+        x, y = np.meshgrid(x,y)
+        z = np.multiply(y, np.sin(x)) - np.multiply(x,np.cos(y))
+        # plot_surface(x,y,z)
+        z = z*2
+    elif deform_fun == 1:
+        # generate random parameters
+        a, b, c, d = np.random.uniform(-10, 10, 4)
+        a, b, c, d = -5, 5, -5, 5
+        x = np.linspace(a, b, num)
+        y = np.linspace(c, d, num)
+        x, y = np.meshgrid(x, y)
+        z = np.multiply(y, np.sin(y)) - np.multiply(x, np.cos(x))
+        # plot_surface(x,y,z)
+        z = z * 2
+    elif deform_fun == 2:
+        # generate random parameters
+        a, b, c, d = np.random.uniform(-10, 10, 4)
+        a, b, c, d = -5, 5, -5, 5
+        x = np.linspace(a, b, num)
+        y = np.linspace(c, d, num)
+        x, y = np.meshgrid(x, y)
+        z = np.multiply(y, np.sin(x)) + np.multiply(x, np.cos(y))
+        # plot_surface(x,y,z)
+        z = z * 2
+    elif deform_fun == 3:
+        # generate random parameters
+        a, b, c, d = np.random.uniform(-10, 10, 4)
+        a, b, c, d = -5, 5, -5, 5
+        x = np.linspace(a, b, num)
+        y = np.linspace(c, d, num)
+        x, y = np.meshgrid(x, y)
+        z = np.multiply(y, np.sin(y)) + np.multiply(x, np.cos(x))
+        # plot_surface(x,y,z)
+        z = z * 2
+    elif deform_fun == 4:
+        # generate random parameters
+        a, b, c, d = np.random.uniform(-10, 10, 4)
+        a, b, c, d = -5, 5, -5, 5
+        x = np.linspace(a, b, num)
+        y = np.linspace(c, d, num)
+        x, y = np.meshgrid(x, y)
+        z = np.multiply(y, np.sin(y)) + np.multiply(x, np.cos(x)) + np.multiply(y, np.sin(x)) + np.multiply(x, np.cos(y))
+        # plot_surface(x,y,z)
+        z = z * 2
+    elif deform_fun == 5:
+        # Generate 2D Gaussian like matrix
+        x, y = np.meshgrid(np.linspace(-1, 1, num), np.linspace(-1, 1, num))
+        d = np.sqrt(x * x + y * y)
+        sigma, mu = 1.0, 0.0
+        z = 100*(np.exp(-((d - mu) ** 2 / (2.0 * sigma ** 2))) - 0.5)
+    elif deform_fun == 6:
+        # Generate multi-Gaussian like matrix
+        x, y = np.meshgrid(np.linspace(-15, 15, num), np.linspace(-15, 15, num))
+        z = np.zeros(x.shape)
+        for i in range(4):
+            mu = (np.random.uniform(-10, 10), np.random.uniform(-10, 10))
+            sigma = (np.random.uniform(2, 10), np.random.uniform(2, 10))
+            z += 10*(np.exp(-(np.power(x-mu[0],2)/(2*sigma[0]**2) + np.power(y-mu[1],2)/(2*sigma[1]**2))) - 0.2)
+        # plot_surface(x, y, z)
+    else:
+        N = (num, num)
+        F = 1
+        x = np.linspace(0, num, num)
+        y = np.linspace(0, num, num)
+        x, y = np.meshgrid(x, y)
+        i = np.minimum(x - 1, N[0] - x + 1)
+        j = np.minimum(y - 1, N[1] - y + 1)
+        H = np.exp(-.5*(np.power(i, 2) + np.power(j, 2))/(F**2))
+        z = 10*np.real(np.fft.ifft2(np.multiply(H, np.fft.fft2(np.random.randn(N[0], N[1])))))
+        # plot_surface(x,y,z)
     return z
 
 def read_img(path):
+    # Cannot convert png to L directly, otherwise the background will be filled with weird color
+    # Instead, should add a black background to png first and convert to L
     img = Image.open(path).convert('L')
     return np.array(img)
 
@@ -41,7 +117,8 @@ def shift(slice, shift_values):
             if slice[img_new_position].astype(np.uint16) + slice[img_position].astype(np.uint16) <= 255:
                 slice[img_new_position] += slice[img_position]
             else:
-                slice[img_new_position] = np.uint8(255)
+                # slice[img_new_position] = np.uint8(255)
+                slice[img_new_position] += slice[img_position]
             del slice[img_position]
         else:
             img_new_value = slice[img_position]
@@ -62,9 +139,11 @@ def interpolate(slice, size):
     return y_new
 
 def deforme(img):
+    img = img.astype(np.int16)
     width = img.shape[0]
-    new_img = np.zeros(img.shape)
+    new_img = np.zeros(img.shape, dtype=np.int16)
     shift_matrix = get_shift_value(width)
+    shift_matrix = np.round(shift_matrix, 2)
     for i in range(0,width):
         # get one slice from img
         # slice_value = img[i].astype(np.uint16)
@@ -91,13 +170,24 @@ def plot_surface(x,y,z):
 
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=5)
-    # plt.show()
+    if save_info:
+        fig.tight_layout()
+        fig.savefig('./gaussian'+ str(idx) + '.png')
+    plt.show()
+
+def plot_deformed():
+    fig = plt.figure()
+    plt.subplot(1, 2, 1)
+    plt.imshow(img, cmap='gray')
+    plt.subplot(1, 2, 2)
+    plt.imshow(new_img, cmap='gray')
+    if save_info:
+        fig.tight_layout()
+        fig.savefig('./deformed'+ str(idx) + '.png')
+    plt.show()
 
 if __name__ == '__main__':
-    img = read_img('./circle.png')
-    plt.subplot(1,2,1)
-    plt.imshow(img, cmap='gray')
-    new_img = deforme(img)
-    plt.subplot(1,2,2)
-    plt.imshow(new_img, cmap='gray')
-    plt.show()
+    for idx in range(3):
+        img = read_img('./test4.png')
+        new_img = deforme(img)
+        plot_deformed()

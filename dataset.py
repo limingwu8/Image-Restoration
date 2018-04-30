@@ -73,19 +73,23 @@ def show_batch(sample_batched):
         plt.tight_layout()
         plt.imshow(np.squeeze(masks_batch[i].transpose((1, 2, 0))))
 
-def show_pred(images, predictions):
+def show_pred(images, predictions, ground_truth):
     # choose 10 indice from images and visualize them
-    indice = [np.random.randint(0, len(images)) for i in range(10)]
-    for i in range(0, 10):
+    indice = [np.random.randint(0, len(images)) for i in range(40)]
+    for i in range(0, 40):
         plt.figure()
-        plt.subplot(1, 2, 1)
+        plt.subplot(1, 3, 1)
         plt.tight_layout()
         plt.title('deformed image')
         plt.imshow(images[indice[i]])
-        plt.subplot(1, 2, 2)
+        plt.subplot(1, 3, 2)
         plt.tight_layout()
         plt.title('predicted mask')
         plt.imshow(predictions[indice[i]])
+        plt.subplot(1, 3, 3)
+        plt.tight_layout()
+        plt.title('ground truth label')
+        plt.imshow(ground_truth[indice[i]])
     plt.show()
 
 # Load Data Science Bowl 2018 training dataset
@@ -180,7 +184,7 @@ if __name__ == '__main__':
                                                         num_workers=Option.num_workers,
                                                         pin_memory=Option.pin_memory)
 
-    for i_batch, sample_batched in enumerate(train_loader):
+    for i_batch, sample_batched in enumerate(val_loader):
         print(i_batch, sample_batched['image'].size(), sample_batched['label'].size())
         for i in range(0, Option.batch_size):
             image = sample_batched['image'][i].numpy()
@@ -192,6 +196,6 @@ if __name__ == '__main__':
             plt.subplot(1, 2, 2)
             plt.title('Ground truth label')
             plt.imshow(np.squeeze(label))
-            fig.savefig('./images/deformed_'+ str(i_batch) + '_' + str(i), bbox_inches='tight', dpi=150)
+            # fig.savefig('./images/deformed_'+ str(i_batch) + '_' + str(i), bbox_inches='tight', dpi=150)
         # plt.show()
         # break
